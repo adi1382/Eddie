@@ -36,4 +36,9 @@ macos_portable/build.sh ui arm64 macos-10.15 l
 macos_pkg/build.sh ui arm64 macos-10.15 l
 macos_dmg/build.sh ui arm64 macos-10.15 l
 
+# UI (Tauri edition). Cross-compiling supported: both architectures are built
+# on any Mac, arm64 included.
+macos_tauri/build.sh arm64
+macos_tauri/build.sh x64
+
 echo "Done."

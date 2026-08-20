@@ -23,6 +23,7 @@
 import { el, clear, $ } from './dom.js';
 import { getState, subscribe } from './state.js';
 import { invoke } from './tauri.js';
+import { fetchServers } from './data.js';
 
 let container, tableBody, filterInput, countEl;
 let unsub;
@@ -156,12 +157,14 @@ function connectSelected() {
 
 function setList(list) {
   if (selectedCodes.size === 0) return;
-  invoke('engine_send', { command: { command: 'servers.userlist', codes: [...selectedCodes], list } });
+  invoke('engine_send', { command: { command: 'servers.userlist', codes: [...selectedCodes], list } })
+    .then(() => fetchServers(true));
 }
 
 export function activate() {
   unsub = subscribe(renderTable);
   renderTable();
+  fetchServers();
 }
 
 export function deactivate() {

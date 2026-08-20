@@ -59,7 +59,9 @@ pub fn parse_line(line: &str) -> Result<Value, EngineError> {
 
     let value: Value = serde_json::from_str(line)?;
     if !value.is_object() {
-        return Err(EngineError::Protocol("message is not an object".to_string()));
+        return Err(EngineError::Protocol(
+            "message is not an object".to_string(),
+        ));
     }
 
     Ok(value)
@@ -93,7 +95,9 @@ pub fn set_callback(message: &mut Value, id: &str) -> Result<(), EngineError> {
             map.insert(KEY_CALLBACK.to_string(), Value::String(id.to_string()));
             Ok(())
         }
-        None => Err(EngineError::Protocol("request is not an object".to_string())),
+        None => Err(EngineError::Protocol(
+            "request is not an object".to_string(),
+        )),
     }
 }
 

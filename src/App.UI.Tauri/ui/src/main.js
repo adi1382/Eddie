@@ -22,7 +22,8 @@
 
 import { invoke, listen } from './tauri.js';
 import { getState, setState, addLog, setStat, setOption } from './state.js';
-import { registerPage, initRouter, navigate, getCurrentPage } from './router.js';
+import { registerPage, initRouter, navigate } from './router.js';
+import { fetchServers, fetchAreas } from './data.js';
 import * as overview from './overview.js';
 import * as servers from './servers.js';
 import * as areas from './areas.js';
@@ -30,27 +31,6 @@ import * as logs from './logs.js';
 import * as stats from './stats.js';
 import * as preferences from './preferences.js';
 import * as about from './about.js';
-
-// Throttle helper for server/area refetch
-let lastServerFetch = 0;
-let lastAreaFetch = 0;
-const THROTTLE_MS = 3000;
-
-async function fetchServers() {
-  const now = Date.now();
-  if (now - lastServerFetch < THROTTLE_MS) return;
-  lastServerFetch = now;
-  const resp = await invoke('engine_request', { command: { command: 'ui.servers.list' } });
-  if (resp && resp.servers) setState({ servers: resp.servers });
-}
-
-async function fetchAreas() {
-  const now = Date.now();
-  if (now - lastAreaFetch < THROTTLE_MS) return;
-  lastAreaFetch = now;
-  const resp = await invoke('engine_request', { command: { command: 'ui.areas.list' } });
-  if (resp && resp.areas) setState({ areas: resp.areas });
-}
 
 function handleEngineMessage(msg) {
   if (!msg || !msg.command) return;
@@ -70,8 +50,8 @@ function handleEngineMessage(msg) {
         for (const l of msg.logs) addLog(l);
       }
       // Fetch initial data
-      fetchServers();
-      fetchAreas();
+      fetchServers(true);
+      fetchAreas(true);
       break;
 
     case 'ui.manifest':
@@ -83,6 +63,11 @@ function handleEngineMessage(msg) {
 
     case 'ui.main-status':
       setState({ mainStatus: msg });
+      break;
+
+    case 'ui.status':
+      // Window title, as the legacy user interfaces do.
+      document.title = msg.full || msg.short || 'Eddie';
       break;
 
     case 'log':
@@ -103,11 +88,11 @@ function handleEngineMessage(msg) {
       break;
 
     case 'ui.servers.updated':
-      if (getCurrentPage() === 'servers') fetchServers();
+      fetchServers();
       break;
 
     case 'ui.areas.updated':
-      if (getCurrentPage() === 'areas') fetchAreas();
+      fetchAreas();
       break;
 
     case 'ui.frontmessage':

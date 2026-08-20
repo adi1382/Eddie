@@ -126,7 +126,11 @@ impl EngineClient {
     /// Returns the reply body, which may be `null` when the command has no
     /// result (the engine always answers a request carrying a `callback`).
     pub fn request(&self, message: &Value, timeout: Duration) -> Result<Value, EngineError> {
-        let id = self.inner.next_id.fetch_add(1, Ordering::SeqCst).to_string();
+        let id = self
+            .inner
+            .next_id
+            .fetch_add(1, Ordering::SeqCst)
+            .to_string();
 
         let mut request = message.clone();
         protocol::set_callback(&mut request, &id)?;
@@ -221,8 +225,12 @@ mod tests {
         let sink = Sink(Arc::new(Mutex::new(Vec::new())));
         let client = EngineClient::new(sink.clone());
 
-        client.send(&protocol::command("mainaction.connect")).unwrap();
-        client.send(&protocol::command("mainaction.disconnect")).unwrap();
+        client
+            .send(&protocol::command("mainaction.connect"))
+            .unwrap();
+        client
+            .send(&protocol::command("mainaction.disconnect"))
+            .unwrap();
 
         assert_eq!(
             sink.lines(),
@@ -260,7 +268,10 @@ mod tests {
         });
 
         let body = client
-            .request(&protocol::command("ui.servers.list"), Duration::from_secs(5))
+            .request(
+                &protocol::command("ui.servers.list"),
+                Duration::from_secs(5),
+            )
             .unwrap();
 
         assert_eq!(body, json!({ "servers": [] }));
@@ -280,7 +291,10 @@ mod tests {
 
         write_line(&mut writer, &json!({ "command": "engine.ready" }));
         writer.write_all(b"openvpn noise, not json\n").unwrap();
-        write_line(&mut writer, &json!({ "command": "log", "message": "hello" }));
+        write_line(
+            &mut writer,
+            &json!({ "command": "log", "message": "hello" }),
+        );
         drop(writer);
 
         handle.join().unwrap();

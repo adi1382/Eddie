@@ -191,6 +191,7 @@ mod tests {
     #[test]
     fn engine_is_found_in_resources() {
         let dir = TempDir::new("resources");
+        dir.file("Contents/MacOS/Eddie");
         dir.file("Contents/Resources/eddie-cli");
 
         let found = locate_engine(&dir.0.join("Contents/MacOS")).unwrap();
