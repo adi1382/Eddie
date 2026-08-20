@@ -68,7 +68,7 @@ fi
 mkdir -p "${SCRIPTDIR}/../files"
 
 if test -f "${DEPLOYPATH}"; then
-    echo "Already builded: ${DEPLOYPATH}"
+    echo "Already built: ${DEPLOYPATH}"
     exit 0
 fi
 

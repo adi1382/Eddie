@@ -444,7 +444,8 @@ namespace Eddie.Core
 			return result;
 		}
 
-		public void ProcessOnMainThread()		{
+		public void ProcessOnMainThread()
+		{
 			lock (m_commands)
 			{
 				Command c = null;
