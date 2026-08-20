@@ -17,7 +17,10 @@
 // </eddie_source_header>
 
 /**
- * Preferences page — renders option schema from the engine.
+ * Preferences page — renders the option schema sent by the engine.
+ *
+ * The engine describes every option in the 'ui.boot' message: a dictionary
+ * name -> { type, default, man, secret, internalonly, value }.
  */
 
 import { el, clear } from './dom.js';
@@ -42,73 +45,83 @@ export function init(root) {
   container.appendChild(groupsContainer);
 }
 
+function isTrue(value) {
+  return String(value).toLowerCase() === 'true';
+}
+
+function buildInput(name, option, value, sensitive) {
+  const id = 'opt-' + name;
+  const type = String(option.type || 'text');
+
+  if (type === 'bool') {
+    const input = el('input', { attrs: { type: 'checkbox', id: id } });
+    input.checked = isTrue(value);
+    input.addEventListener('change', () => sendOption(name, input.checked ? 'True' : 'False'));
+    return input;
+  }
+
+  if (type.startsWith('choice:')) {
+    const input = el('select', { attrs: { id: id } });
+    for (const choice of type.substring('choice:'.length).split(',')) {
+      const item = el('option', { text: choice, attrs: { value: choice } });
+      if (choice === String(value)) item.selected = true;
+      input.appendChild(item);
+    }
+    input.addEventListener('change', () => sendOption(name, input.value));
+    return input;
+  }
+
+  const inputType = sensitive ? 'password' : (type === 'int' || type === 'float' ? 'number' : 'text');
+  const input = el('input', { attrs: { type: inputType, id: id } });
+  if (type === 'float') input.setAttribute('step', 'any');
+  if (sensitive) {
+    input.setAttribute('placeholder', '\u2022\u2022\u2022\u2022\u2022\u2022');
+  } else {
+    input.value = value === undefined || value === null ? '' : String(value);
+  }
+  input.addEventListener('change', () => sendOption(name, input.value));
+  return input;
+}
+
 function render() {
-  const state = getState();
-  const schema = state.optionSchema || [];
-  const options = state.options || {};
+  const options = getState().options || {};
   const search = searchInput ? searchInput.value.toLowerCase() : '';
 
   clear(groupsContainer);
 
-  // Group by option group or name prefix
-  const groups = {};
-  for (const opt of schema) {
-    const group = opt.group || opt.name.split('.')[0] || 'general';
-    if (!groups[group]) groups[group] = [];
-    groups[group].push(opt);
+  const groups = new Map();
+  for (const name of Object.keys(options).sort()) {
+    const option = options[name];
+    if (!option || typeof option !== 'object') continue;
+    if (option.internalonly === true) continue;
+    if (search && !name.toLowerCase().includes(search) && !String(option.man || '').toLowerCase().includes(search)) continue;
+
+    const group = name.indexOf('.') === -1 ? 'general' : name.split('.')[0];
+    if (!groups.has(group)) groups.set(group, []);
+    groups.get(group).push(name);
   }
 
-  for (const [group, opts] of Object.entries(groups)) {
-    const filtered = opts.filter(o =>
-      !search || o.name.toLowerCase().includes(search) || (o.text && o.text.toLowerCase().includes(search))
-    );
-    if (filtered.length === 0) continue;
-
+  for (const [group, names] of groups) {
     const section = el('fieldset', { cls: 'prefs-group' });
     section.appendChild(el('legend', { text: group }));
 
-    for (const opt of filtered) {
+    for (const name of names) {
+      const option = options[name];
+      const sensitive = option.secret === true || String(option.type) === 'password' || isSensitiveOption(name);
       const row = el('div', { cls: 'pref-row' });
-      const label = el('label', { text: opt.text || opt.name, attrs: { for: 'opt-' + opt.name } });
+      const label = el('label', { text: name, attrs: { for: 'opt-' + name, title: String(option.man || '') } });
       row.appendChild(label);
-
-      const currentVal = options[opt.name] !== undefined ? options[opt.name] : (opt.default || '');
-      const sensitive = isSensitiveOption(opt.name);
-
-      let input;
-      if (opt.type === 'bool') {
-        input = el('input', { attrs: { type: 'checkbox', id: 'opt-' + opt.name } });
-        input.checked = currentVal === 'true' || currentVal === true;
-        input.addEventListener('change', () => {
-          sendOption(opt.name, input.checked ? 'true' : 'false');
-        });
-      } else if (opt.type === 'choice' && opt.values) {
-        input = el('select', { attrs: { id: 'opt-' + opt.name } });
-        for (const v of opt.values) {
-          const optEl = el('option', { text: v, attrs: { value: v } });
-          if (v === currentVal) optEl.selected = true;
-          input.appendChild(optEl);
-        }
-        input.addEventListener('change', () => {
-          sendOption(opt.name, input.value);
-        });
-      } else {
-        const inputType = sensitive ? 'password' : (opt.type === 'int' ? 'number' : 'text');
-        input = el('input', { attrs: { type: inputType, id: 'opt-' + opt.name, value: sensitive ? '' : String(currentVal) } });
-        if (sensitive) input.setAttribute('placeholder', '\u2022\u2022\u2022\u2022\u2022\u2022');
-        input.addEventListener('change', () => {
-          sendOption(opt.name, input.value);
-        });
-      }
-      row.appendChild(input);
+      row.appendChild(buildInput(name, option, option.value, sensitive));
+      if (option.man) row.appendChild(el('p', { cls: 'pref-man', text: String(option.man) }));
       section.appendChild(row);
     }
+
     groupsContainer.appendChild(section);
   }
 }
 
 function sendOption(name, value) {
-  invoke('engine_send', { command: { command: 'options.set', name, value } });
+  invoke('engine_send', { command: { command: 'options.set', name: name, value: value } });
 }
 
 export function activate() {

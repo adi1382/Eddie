@@ -51,11 +51,11 @@ function render() {
 
   if (about.license) {
     contentDiv.appendChild(el('h3', { text: 'License' }));
-    contentDiv.appendChild(el('p', { text: about.license }));
+    contentDiv.appendChild(el('pre', { cls: 'about-text', text: about.license }));
   }
   if (about.libraries) {
     contentDiv.appendChild(el('h3', { text: 'Libraries' }));
-    contentDiv.appendChild(el('p', { text: about.libraries }));
+    contentDiv.appendChild(el('pre', { cls: 'about-text', text: about.libraries }));
   }
   if (about.thanks) {
     contentDiv.appendChild(el('h3', { text: 'Thanks' }));

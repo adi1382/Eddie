@@ -23,7 +23,7 @@
 import { el, clear } from './dom.js';
 import { getState, subscribe } from './state.js';
 import { invoke } from './tauri.js';
-import { formatDate } from './format.js';
+import { formatTime } from './format.js';
 
 let container, logList, filterSelect, autoScrollCheck;
 let unsub;
@@ -72,7 +72,7 @@ function renderLogs() {
   clear(logList);
   for (const entry of filtered) {
     const row = el('div', { cls: 'log-entry log-entry--' + (entry.type || 'info') });
-    row.appendChild(el('span', { cls: 'log-time', text: formatDate(entry.date) }));
+    row.appendChild(el('span', { cls: 'log-time', text: formatTime(entry.time) }));
     row.appendChild(el('span', { cls: 'log-type', text: entry.type || '' }));
     row.appendChild(el('span', { cls: 'log-msg', text: entry.message || '' }));
     logList.appendChild(row);
@@ -84,7 +84,7 @@ function renderLogs() {
 
 function copyLogs() {
   const logs = getState().logs || [];
-  const text = logs.map(l => `[${l.date || ''}] [${l.type || ''}] ${l.message || ''}`).join('\n');
+  const text = logs.map(l => `[${formatTime(l.time)}] [${l.type || ''}] ${l.message || ''}`).join('\n');
   navigator.clipboard.writeText(text).catch(() => {});
 }
 

@@ -21,7 +21,7 @@
  */
 
 import { invoke, listen } from './tauri.js';
-import { getState, setState, addLog, setStat, setOption } from './state.js';
+import { getState, setState, addLog, setStat, setOption, subscribe } from './state.js';
 import { registerPage, initRouter, navigate } from './router.js';
 import { fetchServers, fetchAreas } from './data.js';
 import * as overview from './overview.js';
@@ -42,7 +42,6 @@ function handleEngineMessage(msg) {
         manifest: msg.manifest || null,
         mainStatus: msg.main_status || null,
         options: msg.options || {},
-        optionSchema: (msg.manifest && msg.manifest.options) || [],
         paths: msg.path || {},
         netlockModes: msg.netlock_modes || [],
       });
@@ -55,10 +54,7 @@ function handleEngineMessage(msg) {
       break;
 
     case 'ui.manifest':
-      setState({
-        manifest: msg,
-        optionSchema: msg.options || getState().optionSchema,
-      });
+      setState({ manifest: msg });
       break;
 
     case 'ui.main-status':
@@ -84,7 +80,7 @@ function handleEngineMessage(msg) {
 
     case 'ui.notification':
       // Show as log for now
-      addLog({ type: msg.level || 'info', message: msg.message, date: new Date().toISOString() });
+      addLog({ type: msg.level || 'info', message: msg.message, time: Date.now() });
       break;
 
     case 'ui.servers.updated':
@@ -125,6 +121,23 @@ async function init() {
 
   // Navigate to first page
   navigate('overview');
+
+  // Engine availability banner
+  const banner = document.getElementById('engine-banner');
+  const renderBanner = (s) => {
+    if (!s.engineRunning) {
+      banner.textContent = 'The Eddie engine is not running. Restart the application.';
+      banner.hidden = false;
+    } else if (!s.engineBooted) {
+      banner.textContent = 'Starting the Eddie engine...';
+      banner.hidden = false;
+    } else {
+      banner.textContent = '';
+      banner.hidden = true;
+    }
+  };
+  subscribe(renderBanner);
+  renderBanner(getState());
 
   // Listen to engine events
   listen('engine://message', (e) => {

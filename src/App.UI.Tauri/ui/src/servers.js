@@ -103,9 +103,9 @@ function getFiltered() {
   let servers = getState().servers || [];
   if (filter) {
     servers = servers.filter(s =>
-      s.name.toLowerCase().includes(filter) ||
-      s.country_name.toLowerCase().includes(filter) ||
-      s.location.toLowerCase().includes(filter)
+      String(s.name || '').toLowerCase().includes(filter) ||
+      String(s.country_name || '').toLowerCase().includes(filter) ||
+      String(s.location || '').toLowerCase().includes(filter)
     );
   }
   servers = [...servers].sort((a, b) => {
@@ -126,6 +126,9 @@ function renderTable() {
   for (const s of servers) {
     const tr = el('tr', { cls: selectedCodes.has(s.code) ? 'selected' : '' });
     tr.dataset.code = s.code;
+    if (s.error) tr.classList.add('row--error');
+    else if (s.warning) tr.classList.add('row--warning');
+    if (s.warnings) tr.title = s.warnings;
     for (const col of columns) {
       const td = el('td', { text: String(s[col.key] != null ? s[col.key] : '') });
       if (col.key === 'load_perc' && s.load_color) td.classList.add('load--' + s.load_color);

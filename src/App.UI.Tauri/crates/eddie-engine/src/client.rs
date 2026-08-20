@@ -67,10 +67,26 @@ impl EngineClient {
     /// every other message is an unsolicited event and is passed to `on_event`.
     /// Lines that are not valid JSON objects are ignored: the engine shares its
     /// stdout with third party tools output.
-    pub fn start_reader<R, F>(&self, reader: R, mut on_event: F) -> JoinHandle<()>
+    pub fn start_reader<R, F>(&self, reader: R, on_event: F) -> JoinHandle<()>
     where
         R: BufRead + Send + 'static,
         F: FnMut(Value) + Send + 'static,
+    {
+        self.start_reader_with_close(reader, on_event, || {})
+    }
+
+    /// Same as [`EngineClient::start_reader`], calling `on_close` once the
+    /// engine output ends: the engine is gone and the client is unusable.
+    pub fn start_reader_with_close<R, F, C>(
+        &self,
+        reader: R,
+        mut on_event: F,
+        on_close: C,
+    ) -> JoinHandle<()>
+    where
+        R: BufRead + Send + 'static,
+        F: FnMut(Value) + Send + 'static,
+        C: FnOnce() + Send + 'static,
     {
         let inner = Arc::clone(&self.inner);
 
@@ -102,6 +118,7 @@ impl EngineClient {
             }
 
             Inner::close(&inner);
+            on_close();
         })
     }
 
@@ -239,6 +256,29 @@ mod tests {
                 json!({ "command": "mainaction.disconnect" }),
             ]
         );
+    }
+
+    #[test]
+    fn close_callback_runs_when_the_engine_output_ends() {
+        let sink = Sink(Arc::new(Mutex::new(Vec::new())));
+        let (reader, writer) = std::io::pipe().unwrap();
+        let client = EngineClient::new(sink);
+        let (sender, receiver) = std::sync::mpsc::channel();
+
+        let handle = client.start_reader_with_close(
+            BufReader::new(reader),
+            |_| {},
+            move || {
+                let _ = sender.send(());
+            },
+        );
+
+        // The engine exits: its stdout is closed.
+        drop(writer);
+        handle.join().unwrap();
+
+        assert!(receiver.recv_timeout(Duration::from_secs(5)).is_ok());
+        assert!(!client.is_running());
     }
 
     #[test]

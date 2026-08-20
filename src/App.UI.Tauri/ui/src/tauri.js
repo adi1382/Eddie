@@ -24,11 +24,11 @@ const hasTauri = typeof window.__TAURI__ !== 'undefined';
 
 // Mock data for browser development
 const mockServers = [
-  { code: 'Castor', name: 'Castor', name_list: 'Castor', provider: 'AirVPN', country_code: 'NL', country_name: 'Netherlands', location: 'Amsterdam', latitude: 52.37, longitude: 4.9, ping: 12, load: 35, load_perc: 35, load_color: 'green', users: 42, score: 98000, user_list: 'none', can_connect: true, warning: '', error: '' },
-  { code: 'Pollux', name: 'Pollux', name_list: 'Pollux', provider: 'AirVPN', country_code: 'DE', country_name: 'Germany', location: 'Frankfurt', latitude: 50.11, longitude: 8.68, ping: 18, load: 55, load_perc: 55, load_color: 'yellow', users: 87, score: 85000, user_list: 'none', can_connect: true, warning: '', error: '' },
-  { code: 'Vega', name: 'Vega', name_list: 'Vega', provider: 'AirVPN', country_code: 'US', country_name: 'United States', location: 'New York', latitude: 40.71, longitude: -74.01, ping: 85, load: 72, load_perc: 72, load_color: 'yellow', users: 120, score: 72000, user_list: 'allowlist', can_connect: true, warning: '', error: '' },
-  { code: 'Sirius', name: 'Sirius', name_list: 'Sirius', provider: 'AirVPN', country_code: 'JP', country_name: 'Japan', location: 'Tokyo', latitude: 35.68, longitude: 139.69, ping: 190, load: 20, load_perc: 20, load_color: 'green', users: 15, score: 60000, user_list: 'denylist', can_connect: true, warning: '', error: '' },
-  { code: 'Altair', name: 'Altair', name_list: 'Altair', provider: 'AirVPN', country_code: 'CH', country_name: 'Switzerland', location: 'Zurich', latitude: 47.37, longitude: 8.54, ping: 22, load: 90, load_perc: 90, load_color: 'red', users: 200, score: 45000, user_list: 'none', can_connect: true, warning: 'High load', error: '' },
+  { code: 'Castor', name: 'Castor', name_list: 'Castor', provider: 'AirVPN', country_code: 'NL', country_name: 'Netherlands', location: 'Amsterdam', latitude: 52.37, longitude: 4.9, ping: 12, load: 35, load_perc: 35, load_color: 'green', users: 42, score: 98000, user_list: 'none', can_connect: true, warning: false, error: false, warnings: '' },
+  { code: 'Pollux', name: 'Pollux', name_list: 'Pollux', provider: 'AirVPN', country_code: 'DE', country_name: 'Germany', location: 'Frankfurt', latitude: 50.11, longitude: 8.68, ping: 18, load: 55, load_perc: 55, load_color: 'yellow', users: 87, score: 85000, user_list: 'none', can_connect: true, warning: false, error: false, warnings: '' },
+  { code: 'Vega', name: 'Vega', name_list: 'Vega', provider: 'AirVPN', country_code: 'US', country_name: 'United States', location: 'New York', latitude: 40.71, longitude: -74.01, ping: 85, load: 72, load_perc: 72, load_color: 'yellow', users: 120, score: 72000, user_list: 'allowlist', can_connect: true, warning: false, error: false, warnings: '' },
+  { code: 'Sirius', name: 'Sirius', name_list: 'Sirius', provider: 'AirVPN', country_code: 'JP', country_name: 'Japan', location: 'Tokyo', latitude: 35.68, longitude: 139.69, ping: 190, load: 20, load_perc: 20, load_color: 'green', users: 15, score: 60000, user_list: 'denylist', can_connect: true, warning: false, error: false, warnings: '' },
+  { code: 'Altair', name: 'Altair', name_list: 'Altair', provider: 'AirVPN', country_code: 'CH', country_name: 'Switzerland', location: 'Zurich', latitude: 47.37, longitude: 8.54, ping: 22, load: 90, load_perc: 90, load_color: 'red', users: 200, score: 45000, user_list: 'none', can_connect: true, warning: true, error: false, warnings: 'High load' },
 ];
 
 const mockAreas = [
@@ -47,34 +47,21 @@ const mockManifest = {
     thanks: 'Thanks to all AirVPN community members and contributors.'
   },
   locales: ['en'],
-  options: [
-    { name: 'dns.mode', type: 'choice', text: 'DNS Mode', values: ['auto', 'none', 'custom'], default: 'auto', group: 'dns' },
-    { name: 'network.ipv6.mode', type: 'choice', text: 'IPv6 Mode', values: ['in', 'out', 'block'], default: 'in', group: 'network' },
-    { name: 'routes.default', type: 'choice', text: 'Default Route', values: ['in', 'out'], default: 'in', group: 'routes' },
-    { name: 'proxy.mode', type: 'choice', text: 'Proxy Mode', values: ['none', 'http', 'socks', 'tor'], default: 'none', group: 'proxy' },
-    { name: 'proxy.host', type: 'text', text: 'Proxy Host', default: '127.0.0.1', group: 'proxy' },
-    { name: 'proxy.port', type: 'int', text: 'Proxy Port', default: '8080', group: 'proxy' },
-    { name: 'proxy.auth.password', type: 'text', text: 'Proxy Password', default: '', group: 'proxy' },
-    { name: 'advanced.check.route', type: 'bool', text: 'Check Route', default: 'true', group: 'advanced' },
-    { name: 'advanced.expert', type: 'bool', text: 'Expert Mode', default: 'false', group: 'advanced' },
-  ]
 };
 
 const mockOptions = {
-  'dns.mode': 'auto',
-  'network.ipv6.mode': 'in',
-  'routes.default': 'in',
-  'proxy.mode': 'none',
-  'proxy.host': '127.0.0.1',
-  'proxy.port': '8080',
-  'proxy.auth.password': '',
-  'advanced.check.route': 'true',
-  'advanced.expert': 'false',
+  'login': { type: 'text', default: '', man: 'AirVPN account login.', value: 'user' },
+  'password': { type: 'password', default: '', man: 'AirVPN account password.', secret: true, value: '' },
+  'dns.mode': { type: 'choice:auto,none', default: 'auto', man: 'DNS switch mode.', value: 'auto' },
+  'network.ipv6.mode': { type: 'choice:in,out,block', default: 'in', man: 'IPv6 mode.', value: 'in' },
+  'proxy.host': { type: 'text', default: '127.0.0.1', man: 'Proxy host.', value: '127.0.0.1' },
+  'proxy.port': { type: 'int', default: '8080', man: 'Proxy port.', value: '8080' },
+  'advanced.expert': { type: 'bool', default: 'False', man: 'Expert mode.', value: 'False' },
+  'internal.only': { type: 'text', default: '', man: '', internalonly: true, value: 'hidden' },
 };
 
 const mockState = { running: true, booted: true };
 
-let mockConnected = false;
 const mockListeners = new Map();
 
 function mockInvoke(cmd, args) {
@@ -91,7 +78,6 @@ function mockInvoke(cmd, args) {
     case 'engine_send': {
       const c = args.command.command;
       if (c === 'mainaction.connect') {
-        mockConnected = true;
         setTimeout(() => emitMock('engine://message', {
           command: 'ui.main-status',
           message: 'Connected to Castor',
@@ -103,7 +89,6 @@ function mockInvoke(cmd, args) {
           netlock: false
         }), 500);
       } else if (c === 'mainaction.disconnect') {
-        mockConnected = false;
         setTimeout(() => emitMock('engine://message', {
           command: 'ui.main-status',
           message: 'Disconnected',
@@ -121,8 +106,8 @@ function mockInvoke(cmd, args) {
             manifest: mockManifest,
             main_status: { message: 'Ready', app_icon: 'idle', app_color: 'red', action_icon: 'connect', action_command: 'mainaction.connect', action_text: 'Connect', netlock: false },
             logs: [
-              { type: 'info', message: 'Engine started.', date: new Date().toISOString() },
-              { type: 'info', message: 'Mock mode active.', date: new Date().toISOString() },
+              { type: 'info', message: 'Engine started.', time: Date.now() },
+              { type: 'info', message: 'Mock mode active.', time: Date.now() },
             ],
             options: mockOptions,
             path: { profile: '/home/user/.eddie', data: '/usr/share/eddie', application: '/opt/eddie' },

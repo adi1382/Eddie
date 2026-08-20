@@ -1,4 +1,4 @@
-// <eddie_source_header>
+﻿// <eddie_source_header>
 // This file is part of Eddie/AirVPN software.
 // Copyright (C)2014-2026 AirVPN (support@airvpn.org) / https://airvpn.org
 //
@@ -363,6 +363,21 @@ namespace Eddie.Core
 				return "none";
 		}
 
+		private static string WarningsToString(ConnectionInfo info)
+		{
+			string output = "";
+			lock (info.Warnings)
+			{
+				foreach (ConnectionInfoWarning warning in info.Warnings)
+				{
+					if (output != "")
+						output += ", ";
+					output += warning.Message;
+				}
+			}
+			return output;
+		}
+
 		private static Json BuildServersList()
 		{
 			Json result = new Json();
@@ -393,6 +408,7 @@ namespace Eddie.Core
 					jServer["can_connect"].Value = info.CanConnect();
 					jServer["warning"].Value = info.HasWarnings();
 					jServer["error"].Value = info.HasWarningsErrors();
+					jServer["warnings"].Value = WarningsToString(info);
 					jServers.Append(jServer);
 				}
 			}

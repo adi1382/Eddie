@@ -28,7 +28,6 @@ const state = {
   logs: [],
   stats: {},
   options: {},
-  optionSchema: [],
   paths: { profile: '', data: '', application: '' },
   netlockModes: [],
   frontMessages: [],
@@ -93,7 +92,12 @@ export function setStat(key, value) {
  * Update a single option.
  */
 export function setOption(name, value) {
-  state.options[name] = value;
+  const option = state.options[name];
+  if (option && typeof option === 'object') {
+    option.value = value;
+  } else {
+    state.options[name] = { type: 'text', value: value };
+  }
   for (const fn of subscribers.values()) {
     fn(state);
   }

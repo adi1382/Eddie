@@ -21,48 +21,13 @@
  */
 
 /**
- * Format bytes to human-readable string.
+ * Format an engine timestamp (unix time in milliseconds) to local time.
  */
-export function formatBytes(bytes) {
-  if (bytes == null || isNaN(bytes)) return '-';
-  const n = Number(bytes);
-  if (n < 1024) return n + ' B';
-  if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
-  if (n < 1073741824) return (n / 1048576).toFixed(2) + ' MB';
-  return (n / 1073741824).toFixed(2) + ' GB';
-}
-
-/**
- * Format a duration in seconds to HH:MM:SS.
- */
-export function formatDuration(seconds) {
-  if (seconds == null || isNaN(seconds)) return '-';
-  const s = Math.floor(Number(seconds));
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':');
-}
-
-/**
- * Format a date string to local time.
- */
-export function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString();
-  } catch {
-    return dateStr;
-  }
-}
-
-/**
- * Truncate a string to max length.
- */
-export function truncate(str, max = 80) {
-  if (!str) return '';
-  return str.length > max ? str.slice(0, max - 1) + '\u2026' : str;
+export function formatTime(time) {
+  if (time == null || time === '') return '-';
+  const d = new Date(Number(time));
+  if (isNaN(d.getTime())) return String(time);
+  return d.toLocaleTimeString();
 }
 
 /**

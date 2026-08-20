@@ -167,21 +167,38 @@ fn start_engine(app: &AppHandle) -> Result<(), String> {
     let state = app.state::<AppState>();
     let booted = Arc::clone(&state.booted);
     let handle = app.clone();
+    let close_handle = app.clone();
+    let close_booted = Arc::clone(&state.booted);
 
-    let engine = EngineProcess::start(&engine_path, &[], move |message| {
-        if protocol::command_name(&message) == Some("ui.boot") {
-            booted.store(true, Ordering::SeqCst);
-            let _ = handle.emit(
+    let engine = EngineProcess::start(
+        &engine_path,
+        &[],
+        move |message| {
+            if protocol::command_name(&message) == Some("ui.boot") {
+                booted.store(true, Ordering::SeqCst);
+                let _ = handle.emit(
+                    EVENT_STATE,
+                    EngineState {
+                        running: true,
+                        booted: true,
+                    },
+                );
+            }
+
+            let _ = handle.emit(EVENT_MESSAGE, message);
+        },
+        move || {
+            // The engine output ended: it exited, by itself or not.
+            close_booted.store(false, Ordering::SeqCst);
+            let _ = close_handle.emit(
                 EVENT_STATE,
                 EngineState {
-                    running: true,
-                    booted: true,
+                    running: false,
+                    booted: false,
                 },
             );
-        }
-
-        let _ = handle.emit(EVENT_MESSAGE, message);
-    })
+        },
+    )
     .map_err(engine_error)?;
 
     *state.engine.lock().unwrap() = Some(engine);

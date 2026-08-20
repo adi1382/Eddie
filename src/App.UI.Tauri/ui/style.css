@@ -411,3 +411,22 @@ button:focus-visible {
   header { flex-direction: column; align-items: flex-start; }
   .overview-stats { grid-template-columns: 1fr; }
 }
+
+.engine-banner {
+  margin: 0 1rem 0.75rem 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  background: var(--warn-bg, #6b4b00);
+  color: var(--warn-fg, #ffe9b0);
+  font-size: 0.9rem;
+}
+
+.about-text {
+  max-height: 16rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 0.8rem;
+}
+
+.data-table tr.row--warning td { color: var(--warn-row, #d0a02a); }
+.data-table tr.row--error td { color: var(--error-row, #e06060); }

@@ -23,7 +23,6 @@
 import { el, clear, $ } from './dom.js';
 import { getState, subscribe } from './state.js';
 import { invoke } from './tauri.js';
-import { formatBytes, formatDuration } from './format.js';
 
 let container;
 let unsub;
@@ -88,17 +87,14 @@ function render(state) {
 
   // Stats summary
   clear(statsGrid);
-  const keys = ['ServerName', 'ServerCountry', 'ServerLatency', 'SessionExitIp', 'VpnProtocol', 'SessionUptime', 'SessionDownload', 'SessionUpload'];
-  const labels = ['Server', 'Location', 'Latency', 'Exit IP', 'Protocol', 'Uptime', 'Download', 'Upload'];
+  const keys = ['ServerName', 'ServerLocation', 'ServerLatency', 'VpnExitIPv4', 'VpnProtocol', 'VpnStart', 'VpnTotalDownload', 'VpnTotalUpload'];
+  const labels = ['Server', 'Location', 'Latency', 'Exit IP', 'Protocol', 'Connected since', 'Download', 'Upload'];
   for (let i = 0; i < keys.length; i++) {
     const val = state.stats[keys[i]];
     if (val !== undefined && val !== '') {
-      let display = val;
-      if (keys[i] === 'SessionUptime') display = formatDuration(val);
-      if (keys[i] === 'SessionDownload' || keys[i] === 'SessionUpload') display = formatBytes(val);
       const item = el('div', { cls: 'stat-item', children: [
         el('span', { cls: 'stat-label', text: labels[i] }),
-        el('span', { cls: 'stat-value', text: String(display) }),
+        el('span', { cls: 'stat-value', text: String(val) }),
       ]});
       statsGrid.appendChild(item);
     }

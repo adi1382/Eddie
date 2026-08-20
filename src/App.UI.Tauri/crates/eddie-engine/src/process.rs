@@ -77,10 +77,17 @@ pub struct EngineProcess {
 impl EngineProcess {
     /// Starts the engine and the thread reading its messages.
     ///
-    /// `on_event` receives every unsolicited message (logs, status, ...).
-    pub fn start<F>(path: &Path, extra_args: &[String], on_event: F) -> Result<Self, EngineError>
+    /// `on_event` receives every unsolicited message (logs, status, ...) and
+    /// `on_close` is called once the engine output ends, whatever the reason.
+    pub fn start<F, C>(
+        path: &Path,
+        extra_args: &[String],
+        on_event: F,
+        on_close: C,
+    ) -> Result<Self, EngineError>
     where
         F: FnMut(Value) + Send + 'static,
+        C: FnOnce() + Send + 'static,
     {
         let mut command = Command::new(path);
         command
@@ -108,7 +115,7 @@ impl EngineProcess {
             .ok_or_else(|| EngineError::Protocol("engine stdout not available".to_string()))?;
 
         let client = EngineClient::new(stdin);
-        client.start_reader(BufReader::new(stdout), on_event);
+        client.start_reader_with_close(BufReader::new(stdout), on_event, on_close);
 
         Ok(EngineProcess { child, client })
     }
