@@ -578,12 +578,14 @@ namespace Eddie.Core
 					{
 						m_serversInfoUpdated = false;
 						OnRefreshUi(RefreshUiMode.Full);
+						UiManager.Broadcast("ui.servers.updated");
 					}
 
 					if (m_areasInfoUpdated)
 					{
 						m_areasInfoUpdated = false;
 						RecomputeAreas();
+						UiManager.Broadcast("ui.areas.updated");
 					}
 				}
 
@@ -1126,6 +1128,9 @@ namespace Eddie.Core
 			RecomputeAreas();
 
 			OnCheckConnections();
+
+			UiManager.Broadcast("ui.servers.updated");
+			UiManager.Broadcast("ui.areas.updated");
 
 			if (m_jobsManager.Discover != null)
 				m_jobsManager.Discover.CheckNow();
