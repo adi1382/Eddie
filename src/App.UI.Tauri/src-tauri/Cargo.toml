@@ -1,0 +1,21 @@
+[package]
+name = "eddie-ui"
+description = "Eddie VPN desktop user interface (Tauri)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+name = "eddie_ui_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+eddie-engine = { path = "../crates/eddie-engine" }
+serde.workspace = true
+serde_json.workspace = true
+tauri = { version = "2", features = [] }

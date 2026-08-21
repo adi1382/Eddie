@@ -143,6 +143,10 @@ bin
 obj
 repository/files/*
 
+# Rust / Tauri
+src/App.UI.Tauri/target/
+src/App.UI.Tauri/src-tauri/gen/
+
 # Publish profiles
 *.pubxml
 *.pubxml.user
